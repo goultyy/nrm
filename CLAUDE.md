@@ -11,10 +11,9 @@ happens on the server; private keys never leave it.
 
 ## Current status
 
-All nine steps are built and tested. Steps 1–6 are confirmed by the user (data model and encrypted
-profile store, server selector, SSH layer, main window, `mt.su.nrm.nginx` engine, virtual host editor
-and validate/apply pipeline). Steps 7 (location editor and the http-level editors) and 8 (SSL
-manager in `mt.su.nrm.ssl` and `mt.su.nrm.ssh`) have their screens still awaiting the user's check.
+All nine steps are built and tested, and the user has run the app and reports it works (steps 1–8
+confirmed; the packaged build's Cloudflare pages needed a missing Java module, fixed in 1.1.0 and
+awaiting a rebuild to confirm). Features added since the plan are listed in the README checklist.
 Step 9 is done except the `.msi`/`.exe` installers, which need the WiX Toolset 3.x (the app image
 from `packaging\build-installer.ps1` is built and runs). Run `.\mvnw test` to confirm before
 starting new work, and again before ending a session. Tests that need a real server are skipped

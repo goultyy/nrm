@@ -4,7 +4,11 @@ A Windows desktop app for managing multiple remote Nginx servers over SSH, with 
 
 ## Status
 
-All nine build steps are built and tested. Steps 1 to 6 are confirmed on screen. Steps 7 (locations and the other editors) and 8 (SSL manager) are built and tested but their screens are waiting for a check, and step 9's `.msi`/`.exe` installers need the WiX Toolset to be built (the self-contained app image is already produced and runs).
+Current version: see `pom.xml` (the About box shows it); changes are listed in `CHANGELOG.md`.
+
+All nine build steps are built and tested, and the app has been run and checked on screen. The one open item is step 9's `.msi`/`.exe` installers, which need the WiX Toolset to be built (the self-contained app image from `packaging\build-installer.ps1` is already produced and runs).
+
+The original plan:
 
 - [x] 1. Maven skeleton, data model, encrypted profile store
 - [x] 2. Server selector
@@ -12,9 +16,23 @@ All nine build steps are built and tested. Steps 1 to 6 are confirmed on screen.
 - [x] 4. Main window shell
 - [x] 5. Config parser and generator, layout detection
 - [x] 6. Virtual host editor, validate/apply pipeline, pending changes panel
-- [ ] 7. Locations, upstreams, cache, redirects, auth, limits, compression, headers, rewrites, error pages
-- [ ] 8. SSL: Let's Encrypt, CAs, certificate issuance
-- [ ] 9. Error handling, polish, Windows installer
+- [x] 7. Locations, upstreams, cache, redirects, auth, limits, compression, headers, rewrites, error pages
+- [x] 8. SSL: Let's Encrypt, CAs, certificate issuance
+- [ ] 9. Error handling, polish, Windows installer (done except the `.msi`/`.exe`, which need WiX 3.x)
+
+Added since the plan:
+
+- [x] Intermediate CAs, nested to any depth
+- [x] Cloudflare: DNS records, tunnel routes, zones and tunnels, and adding a site to Cloudflare from its wizard (the packaged app was missing a Java module for this, fixed in 1.1.0; rebuild to confirm)
+- [x] Dark mode (View > Theme: System, Light, Dark)
+- [x] Optional add-ons (View > Features), starting with the Status page
+- [x] Custom log formats with an interactive builder
+- [x] Change History: every apply is kept and can be restored
+- [x] Security header presets on a site's Headers tab
+- [x] Log analysis on the Logs page
+- [x] Real visitor IP, set per site
+- [x] Remote "New file" in the File Explorer
+- [ ] Not started: `map` and `geo` editors, several proxy kinds in one site's chain, stream (TCP/UDP) proxying, global search across servers
 
 ## Building and running
 
