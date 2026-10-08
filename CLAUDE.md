@@ -101,8 +101,10 @@ Keep this separation. UI code should never talk to SSH directly — go through a
   tell builds apart.
 - **Keep the README's checklist current.** Tick off each step there as you finish it.
 - **Commit on every version bump, however minor**, once `.\mvnw test` passes, with the version in the message
-  (for example `1.1.2: fix the module list`) and the usual Co-Authored-By line. Commit only; **never push**. I push
-  myself. The report should say the commit hash and that it is not pushed. Run git by its full path
+  (for example `1.1.2: fix the module list`) and the usual Co-Authored-By line. **You may run `git push`** whenever it is
+  needed (I said so on 2026-10-08, replacing my earlier "I push myself"): after a commit that passes `.\mvnw test`, and
+  when I ask. Never force-push, never push a failing build, and only to the existing `origin` (goultyy/nrm). The report
+  should say the commit hash and whether it was pushed. Run git by its full path
   (`C:\Program Files\Git\cmd\git.exe`) if it isn't on PATH, and write commit messages from a file without a BOM
   (PowerShell 5.1's `-Encoding utf8` and piped here-strings add one).
 - **If something in this brief conflicts with what turns out to be sensible**, stop and ask

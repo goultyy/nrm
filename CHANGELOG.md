@@ -4,6 +4,10 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.4.2
+
+- Docs: `CLAUDE.md` now allows `git push` when needed (after a passing build, to `origin` only, never forced).
+
 ## 1.4.1
 
 - Fix: importing a certificate kept saying "Choose the private key file" after the key had been chosen, until you ticked
