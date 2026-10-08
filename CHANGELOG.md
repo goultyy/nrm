@@ -4,6 +4,14 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.3.1
+
+- Fix: downloading a server certificate showed only the Windows `.p7b` option; the plain certificate and chain were
+  hidden in the save dialog's "Save as type" drop-down (three of its entries shared `*.crt`). "Download" now first asks
+  what to save, in a list with an explanation each: Windows install file, certificate and chain in one PEM file,
+  certificate only, or chain only. The save dialog then offers exactly that file type. The file contents are now built in
+  one tested place. Private keys are still never downloaded.
+
 ## 1.3.0
 
 - New optional add-on (View > Features): IP addresses. Lists every address on the server with the ports nginx listens on

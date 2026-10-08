@@ -312,8 +312,6 @@ abstract class CertificateViewBase extends BorderPane {
         });
     }
 
-    private enum ExportKind { WINDOWS, PEM_FULL, PEM_CERT, PEM_CHAIN }
-
     /**
      * Saves the selected server certificate with its chain, in the format the user picks. Only public
      * certificates are fetched; the private key stays on the server (and is cut out on the server if the file
@@ -330,63 +328,32 @@ abstract class CertificateViewBase extends BorderPane {
                     + "downloaded from the Authority tab.");
             return;
         }
+        // Which file to make is asked first, in a list, rather than left to the save dialog's file-type drop-down.
+        java.util.Optional<CertificateExportKind> chosen = CertificateFormatDialog.show(window(), c.commonName());
+        if (chosen.isEmpty()) {
+            return;
+        }
+        CertificateExportKind kind = chosen.get();
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
-        chooser.setTitle("Save the certificate");
-        Map<javafx.stage.FileChooser.ExtensionFilter, ExportKind> kinds = new java.util.LinkedHashMap<>();
-        kinds.put(new javafx.stage.FileChooser.ExtensionFilter("Windows: certificate and chain, PKCS#7 (*.p7b)", "*.p7b"),
-                ExportKind.WINDOWS);
-        kinds.put(new javafx.stage.FileChooser.ExtensionFilter("PEM: certificate and chain in one file (*.crt)", "*.crt"),
-                ExportKind.PEM_FULL);
-        kinds.put(new javafx.stage.FileChooser.ExtensionFilter("PEM: certificate only (*.crt)", "*.crt"), ExportKind.PEM_CERT);
-        kinds.put(new javafx.stage.FileChooser.ExtensionFilter("PEM: chain only, without the certificate (*.crt)", "*.crt"),
-                ExportKind.PEM_CHAIN);
-        chooser.getExtensionFilters().addAll(kinds.keySet());
-        chooser.setSelectedExtensionFilter(kinds.keySet().iterator().next());
-        chooser.setInitialFileName(mt.su.nrm.nginx.LayoutDetector.safeFileName(c.commonName()));
+        chooser.setTitle("Save: " + kind.title());
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(kind.filterName(), "*" + kind.extension()));
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+        chooser.setInitialFileName(kind.suggestedFileName(c.commonName()));
         java.io.File picked = chooser.showSaveDialog(window());
         if (picked == null) {
             return;
         }
-        ExportKind kind = kinds.getOrDefault(chooser.getSelectedExtensionFilter(), ExportKind.WINDOWS);
-        String ext = kind == ExportKind.WINDOWS ? ".p7b" : ".crt";
-        java.io.File target = picked.getName().contains(".") ? picked : new java.io.File(picked.getPath() + ext);
+        java.io.File target = new java.io.File(picked.getParentFile(), kind.withExtension(picked.getName()));
         List<CertificateInfo> known = connection.certificates() == null ? List.of() : connection.certificates();
         work("Downloading", "Fetching the certificate and its chain (public part only)...",
                 () -> CertificateService.fetchExport(connection.session(), profile.getPaths(), c, known), export -> {
                     try {
-                        List<String> all = new ArrayList<>();
-                        all.add(export.certificate());
-                        all.addAll(export.chain());
-                        String note;
-                        switch (kind) {
-                            case WINDOWS:
-                                java.nio.file.Files.write(target.toPath(),
-                                        mt.su.nrm.ssl.CertificateChains.toPkcs7(String.join("", all)));
-                                note = "Open it in Windows to see every certificate, or right-click it and choose Install "
-                                        + "Certificate to add the root and intermediates to the right stores.";
-                                break;
-                            case PEM_CERT:
-                                java.nio.file.Files.writeString(target.toPath(), export.certificate());
-                                note = "It holds the certificate only.";
-                                break;
-                            case PEM_CHAIN:
-                                if (export.chain().isEmpty()) {
-                                    Dialogs.info(window(), "There is no chain", c.commonName() + " has no issuing certificates "
-                                            + "to add: it is self-signed, or its issuer isn't on this server and its file "
-                                            + "holds nothing but the certificate. Nothing was saved.");
-                                    return;
-                                }
-                                java.nio.file.Files.writeString(target.toPath(), String.join("", export.chain()));
-                                note = "It holds the " + export.chain().size() + " issuing certificate(s), nearest first.";
-                                break;
-                            default:
-                                java.nio.file.Files.writeString(target.toPath(), String.join("", all));
-                                note = "It holds the certificate followed by " + export.chain().size()
-                                        + " issuing certificate(s). Windows shows only the first certificate in a PEM file; "
-                                        + "use the .p7b format for Windows.";
-                        }
-                        Dialogs.info(window(), "Saved", target.getName() + " was saved. " + note
+                        CertificateExportKind.Output out = kind.render(export.certificate(), export.chain());
+                        java.nio.file.Files.write(target.toPath(), out.bytes());
+                        Dialogs.info(window(), "Saved", target.getName() + " was saved. " + out.note()
                                 + "\n\nNo private key was downloaded.");
+                    } catch (CertificateExportKind.NothingToSave e) {
+                        Dialogs.info(window(), "There is nothing to save", c.commonName() + ": " + e.getMessage());
                     } catch (java.io.IOException e) {
                         Dialogs.error(window(), "Could not save the file", e.getMessage());
                     }
