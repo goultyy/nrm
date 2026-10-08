@@ -268,7 +268,7 @@ public final class MainWindow extends BorderPane {
                             + "Saved servers: " + mt.su.nrm.util.AppDirs.profileStoreFile() + "\n"
                             + "Log file: " + mt.su.nrm.util.AppLog.file() + "\n\n"
                             + "Profiles are encrypted for your Windows account. Private keys on your servers "
-                            + "are never downloaded.",
+                            + "stay there unless you choose to download one, after a warning.",
                     ButtonType.OK);
             a.setTitle("About");
             a.setHeaderText(mt.su.nrm.util.AppInfo.NAME);

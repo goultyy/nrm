@@ -15,7 +15,11 @@ enum CertificateExportKind {
     PEM_CERT(".crt", "", "Certificate only (PEM, .crt)",
             "Just the server's own certificate, without any issuing certificates."),
     PEM_CHAIN(".crt", "-chain", "Chain only (PEM, .crt)",
-            "Only the issuing certificates, nearest first, without the server's own certificate.");
+            "Only the issuing certificates, nearest first, without the server's own certificate."),
+    /** Not a certificate file: the secret key. Handled separately, behind a warning (see {@link KeyDownloadWarning}). */
+    PRIVATE_KEY(".key", "", "Private key (.key): handle with care",
+            "The secret key that goes with this certificate. Anyone who has it can pose as your site. You are warned and "
+                    + "asked to confirm before it is downloaded.");
 
     private final String extension;
     private final String nameSuffix;
@@ -48,7 +52,16 @@ enum CertificateExportKind {
 
     /** The name of the file type shown in the save dialog. */
     String filterName() {
-        return this == WINDOWS ? "Windows certificate chain (*.p7b)" : "PEM certificate (*.crt)";
+        return switch (this) {
+            case WINDOWS -> "Windows certificate chain (*.p7b)";
+            case PRIVATE_KEY -> "Private key (*.key)";
+            default -> "PEM certificate (*.crt)";
+        };
+    }
+
+    /** True for the secret key, which is fetched and written by its own, warned path. */
+    boolean isKey() {
+        return this == PRIVATE_KEY;
     }
 
     /** What to write to the file, and what to tell the user about it. */
@@ -67,6 +80,9 @@ enum CertificateExportKind {
      * issuing certificates, nearest first. Only certificate blocks are ever passed in.
      */
     Output render(String certificate, java.util.List<String> chain) throws NothingToSave, java.io.IOException {
+        if (isKey()) {
+            throw new IllegalStateException("A private key is never rendered from certificate blocks.");
+        }
         String all = certificate + String.join("", chain);
         switch (this) {
             case WINDOWS:

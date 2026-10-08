@@ -116,6 +116,16 @@ public final class SshSession implements AutoCloseable {
         return run(invocation.commandLine(), invocation.stdin(), invocation.stdin() != null, timeout);
     }
 
+    /**
+     * Runs a command as root whose output is secret (a private key). The command and its exit status are logged like
+     * any other, but what it prints is <i>not</i>: the log says only that the output was withheld. Error output is still
+     * logged, since it holds messages, not the secret. Use it for nothing else; ordinary output belongs in the log.
+     */
+    public CommandResult execPrivilegedSecret(String command, Duration timeout) throws IOException {
+        Privilege.Invocation invocation = Privilege.wrap(privilegeMode, command, sudoPassword);
+        return run(invocation.commandLine(), invocation.stdin(), invocation.stdin() != null, timeout, true);
+    }
+
     /** Writes a file over SFTP as the login user. The content is not logged, only its size. */
     public void upload(byte[] data, String remotePath) throws IOException {
         log.log(CommandLog.Kind.COMMAND, "sftp put " + remotePath + " (" + data.length + " bytes)");
@@ -246,6 +256,11 @@ public final class SshSession implements AutoCloseable {
 
     private CommandResult run(String commandLine, byte[] stdin, boolean passwordOnStdin, Duration timeout)
             throws IOException {
+        return run(commandLine, stdin, passwordOnStdin, timeout, false);
+    }
+
+    private CommandResult run(String commandLine, byte[] stdin, boolean passwordOnStdin, Duration timeout,
+                              boolean secretOutput) throws IOException {
         log.log(CommandLog.Kind.COMMAND, "$ " + commandLine);
         if (passwordOnStdin) {
             log.log(CommandLog.Kind.INFO, "(sudo password sent on stdin, not on the command line)");
@@ -259,7 +274,11 @@ public final class SshSession implements AutoCloseable {
         }
         String stdout = new String(raw.stdout(), StandardCharsets.UTF_8);
         String stderr = new String(raw.stderr(), StandardCharsets.UTF_8);
-        logOutput(CommandLog.Kind.OUTPUT, stdout);
+        if (secretOutput) {
+            log.log(CommandLog.Kind.INFO, "(" + stdout.length() + " characters of output withheld from this log: it is secret)");
+        } else {
+            logOutput(CommandLog.Kind.OUTPUT, stdout);
+        }
         logOutput(CommandLog.Kind.ERROR_OUTPUT, stderr);
         int exit = raw.exitStatus() == null ? -1 : raw.exitStatus();
         log.log(CommandLog.Kind.STATUS, exit < 0 ? "[no exit status reported]" : "[exit " + exit + "]");

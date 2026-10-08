@@ -313,9 +313,9 @@ abstract class CertificateViewBase extends BorderPane {
     }
 
     /**
-     * Saves the selected server certificate with its chain, in the format the user picks. Only public
-     * certificates are fetched; the private key stays on the server (and is cut out on the server if the file
-     * has one in it).
+     * Saves the selected server certificate with its chain, or its private key, as the user picks. The certificate
+     * formats fetch public certificates only (a key in the same file is cut out on the server). The key is a separate
+     * choice behind a warning, see {@link #downloadKey}.
      */
     final void downloadSelected() {
         Row row = table.getSelectionModel().getSelectedItem();
@@ -334,6 +334,10 @@ abstract class CertificateViewBase extends BorderPane {
             return;
         }
         CertificateExportKind kind = chosen.get();
+        if (kind.isKey()) {
+            downloadKey(c);
+            return;
+        }
         javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
         chooser.setTitle("Save: " + kind.title());
         chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(kind.filterName(), "*" + kind.extension()));
@@ -354,6 +358,54 @@ abstract class CertificateViewBase extends BorderPane {
                                 + "\n\nNo private key was downloaded.");
                     } catch (CertificateExportKind.NothingToSave e) {
                         Dialogs.info(window(), "There is nothing to save", c.commonName() + ": " + e.getMessage());
+                    } catch (java.io.IOException e) {
+                        Dialogs.error(window(), "Could not save the file", e.getMessage());
+                    }
+                });
+    }
+
+    /**
+     * Downloads the private key of a server certificate, after the warning. The server checks the key belongs to the
+     * certificate, the key is not written to the command log, and the local file is created for its owner only.
+     */
+    private void downloadKey(CertificateInfo c) {
+        List<String> configured = new ArrayList<>();
+        if (connection.config() != null) {
+            for (mt.su.nrm.nginx.VirtualHost host : connection.config().virtualHosts()) {
+                VhostSettings s = host.read();
+                if (c.path().equals(s.sslCertificate) && !s.sslCertificateKey.isBlank()) {
+                    configured.add(s.sslCertificateKey);
+                }
+            }
+        }
+        List<String> candidates = mt.su.nrm.ssh.KeyExportService.candidates(c.path(), configured, keyPathFor(c.path()));
+        java.util.Optional<String> keyPath = KeyDownloadWarning.show(window(), c.commonName(), candidates);
+        if (keyPath.isEmpty()) {
+            return;
+        }
+        javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+        chooser.setTitle("Save the PRIVATE KEY (keep it secret)");
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter(
+                CertificateExportKind.PRIVATE_KEY.filterName(), "*.key"));
+        chooser.getExtensionFilters().add(new javafx.stage.FileChooser.ExtensionFilter("All files", "*.*"));
+        chooser.setInitialFileName(CertificateExportKind.PRIVATE_KEY.suggestedFileName(c.commonName()));
+        java.io.File picked = chooser.showSaveDialog(window());
+        if (picked == null) {
+            return;
+        }
+        java.io.File target = new java.io.File(picked.getParentFile(),
+                CertificateExportKind.PRIVATE_KEY.withExtension(picked.getName()));
+        List<CertificateInfo> known = connection.certificates() == null ? List.of() : connection.certificates();
+        String path = keyPath.get().strip();
+        work("Downloading the key", "Checking the key against the certificate on the server, then reading it...",
+                () -> mt.su.nrm.ssh.KeyExportService.fetch(connection.session(), c, known, path), key -> {
+                    try {
+                        boolean restricted = mt.su.nrm.util.SecretFiles.write(target.toPath(), key.pem());
+                        Dialogs.info(window(), "Private key saved", target.getAbsolutePath() + "\n\n"
+                                + (restricted ? "Only your Windows account can open this file."
+                                : "This computer could not restrict who can open this file, so check its permissions yourself.")
+                                + "\n\nKeep it secret. Do not email it or put it in a shared, synced or git folder, and delete "
+                                + "it when you no longer need it. The command log shows that a key was downloaded, not the key.");
                     } catch (java.io.IOException e) {
                         Dialogs.error(window(), "Could not save the file", e.getMessage());
                     }

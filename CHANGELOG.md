@@ -4,6 +4,17 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.4.0
+
+- Download a server certificate's **private key**, as an explicit choice in the Download list (set apart, in red, never the
+  default). A warning comes first: anyone with the file can pose as the site, a leak means replacing the certificate and key,
+  where not to keep it, and that a new key on the other machine is often safer. You must tick "I understand" and confirm the
+  key file (taken from the sites using the certificate, else the usual name). The server checks the key belongs to the
+  certificate and refuses a missing, encrypted or mismatching key. Server certificates only; CA keys are never downloaded.
+- The key is read through a new logged command mode that withholds the output from the command log (the log records that a key
+  was downloaded and which file), and is saved to a file that only your Windows account can open.
+- `CLAUDE.md`'s rule is updated: keys stay on the server unless the user explicitly downloads one.
+
 ## 1.3.1
 
 - Fix: downloading a server certificate showed only the Windows `.p7b` option; the plain certificate and chain were

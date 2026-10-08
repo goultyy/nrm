@@ -7,7 +7,9 @@ working on one numbered step at a time, but decisions in later steps depend on c
 
 A Windows desktop app (Java 17+, JavaFX 21, Maven) for managing multiple remote Nginx servers
 over SSH, with a classic IIS Manager-style interface. No cloud component. All certificate work
-happens on the server; private keys never leave it.
+happens on the server; private keys stay on it unless the user explicitly chooses to download one
+(an opt-in per download, behind a warning; the key is never written to the command log, and the server first
+checks that it belongs to the chosen certificate). CA keys are never downloaded.
 
 ## Current status
 

@@ -49,7 +49,7 @@ class CertificateExportKindTest {
             assertTrue(titles.add(kind.title()), "titles must differ: " + kind);
             assertFalse(kind.description().isBlank(), kind.name());
         }
-        assertEquals(4, CertificateExportKind.values().length);
+        assertEquals(5, CertificateExportKind.values().length);
         assertEquals(CertificateExportKind.PEM_FULL, CertificateFormatDialog.rememberedChoice(),
                 "the plain full-chain PEM, not the Windows file, is what is ticked to begin with");
     }
@@ -100,10 +100,40 @@ class CertificateExportKindTest {
     }
 
     @Test
+    void thePrivateKeyIsItsOwnChoiceNeverRenderedFromCertificatesAndNeverTheDefault() {
+        assertTrue(CertificateExportKind.PRIVATE_KEY.isKey());
+        assertEquals(1, java.util.Arrays.stream(CertificateExportKind.values()).filter(CertificateExportKind::isKey).count());
+        assertEquals("example.com.key", CertificateExportKind.PRIVATE_KEY.suggestedFileName("example.com"));
+        assertEquals("Private key (*.key)", CertificateExportKind.PRIVATE_KEY.filterName());
+        assertTrue(CertificateExportKind.PRIVATE_KEY.description().contains("warned"));
+        assertThrows(IllegalStateException.class, () -> CertificateExportKind.PRIVATE_KEY.render(LEAF, List.of(ISSUER)));
+        CertificateFormatDialog.forget();
+        assertFalse(CertificateFormatDialog.rememberedChoice().isKey());
+    }
+
+    @Test
+    void theWarningNamesEveryDangerAndWontLetYouContinueUntilYouAgree() {
+        String dangers = String.join("\n", KeyDownloadWarning.dangers()).toLowerCase();
+        assertTrue(dangers.contains("pretend to be your website"), "impersonation");
+        assertTrue(dangers.contains("read it"), "reading traffic");
+        assertTrue(dangers.contains("replace the certificate and key") && dangers.contains("revoke"), "no taking it back");
+        assertTrue(dangers.contains("email") && dangers.contains("git"), "where not to put it");
+        assertTrue(dangers.contains("safer way"), "the alternative of a new key");
+        String handling = String.join("\n", KeyDownloadWarning.handling());
+        assertTrue(handling.contains("does not keep it or write it to its log"), handling);
+
+        String path = "/etc/letsencrypt/live/a.com/privkey.pem";
+        assertFalse(KeyDownloadWarning.canContinue(false, path), "the box must be ticked");
+        assertTrue(KeyDownloadWarning.canContinue(true, path));
+        assertFalse(KeyDownloadWarning.canContinue(true, ""), "and a usable path given");
+        assertFalse(KeyDownloadWarning.canContinue(true, "/etc/a b;rm"), "a path that couldn't be sent safely");
+    }
+
+    @Test
     void noKindEverWritesAPrivateKeyBlock() throws Exception {
         // Only certificate blocks are passed in, but whatever a kind writes must never contain a key block.
         for (CertificateExportKind kind : CertificateExportKind.values()) {
-            if (kind == CertificateExportKind.WINDOWS) {
+            if (kind == CertificateExportKind.WINDOWS || kind.isKey()) {
                 continue;
             }
             Output o = kind.render(LEAF, List.of(ISSUER));

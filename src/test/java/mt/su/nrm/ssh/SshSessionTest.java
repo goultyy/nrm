@@ -148,6 +148,38 @@ class SshSessionTest {
     }
 
     @Test
+    void secretOutputIsReturnedToTheCallerButNeverWrittenToTheLog() throws IOException {
+        String key = "-----BEGIN PRIVATE KEY-----\nTOPSECRETKEYMATERIAL\n-----END PRIVATE KEY-----\n";
+        transport.responder = c -> FakeTransport.raw(0, key, "");
+        CommandResult result = session(PrivilegeMode.NONE, null).execPrivilegedSecret("sed -n p /etc/ssl/a.key",
+                Duration.ofSeconds(5));
+
+        assertEquals(key, result.stdout(), "the caller still gets the output");
+        assertEquals(List.of("$ sed -n p /etc/ssl/a.key"), texts(CommandLog.Kind.COMMAND), "the command is logged");
+        assertEquals(List.of("[exit 0]"), texts(CommandLog.Kind.STATUS));
+        assertTrue(texts(CommandLog.Kind.INFO).stream().anyMatch(t -> t.contains("withheld")), texts(CommandLog.Kind.INFO).toString());
+        assertTrue(texts(CommandLog.Kind.OUTPUT).isEmpty());
+        for (CommandLog.Line line : log.snapshot()) {
+            assertFalse(line.text().contains("TOPSECRET") || line.text().contains("PRIVATE KEY-----\nT"), line.text());
+        }
+    }
+
+    @Test
+    void secretExecStillUsesTheSudoPasswordOnStdinAndStillLogsErrors() throws IOException {
+        log.addSecret("hunter2");
+        transport.responder = c -> FakeTransport.raw(1, "", "openssl: not found\n");
+        CommandResult result = session(PrivilegeMode.SUDO_PASSWORD, "hunter2").execPrivilegedSecret("openssl x",
+                Duration.ofSeconds(5));
+        assertEquals(1, result.exitStatus());
+        assertEquals("sudo -S -p '' sh -c 'openssl x'", transport.commands.get(0));
+        assertArrayEquals("hunter2\n".getBytes(StandardCharsets.UTF_8), transport.stdins.get(0));
+        assertEquals(List.of("openssl: not found"), texts(CommandLog.Kind.ERROR_OUTPUT), "error text is not secret");
+        for (CommandLog.Line line : log.snapshot()) {
+            assertFalse(line.text().contains("hunter2"), line.text());
+        }
+    }
+
+    @Test
     void commandIsLoggedBeforeItIsSent() {
         transport.failNext = true;
         assertThrows(IOException.class, () -> session(PrivilegeMode.NONE, null).exec("uname -a"));

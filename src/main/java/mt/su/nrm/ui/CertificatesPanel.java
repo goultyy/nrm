@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * The Certificates tab: every certificate found on the server (Let's Encrypt, the manual folder,
  * the ones nginx is configured to use, and the CA), with expiry, details, Let's Encrypt issue and
- * renew through certbot, and "use in a virtual host". Keys are never read or downloaded.
+ * renew through certbot, and "use in a virtual host". Keys are only read to be downloaded when the user asks for that, behind a warning.
  */
 final class CertificatesPanel extends CertificateViewBase {
 

@@ -47,10 +47,16 @@ final class CertificateFormatDialog {
             what.setOpacity(0.8);
             what.setPadding(new Insets(0, 0, 0, 24));
             buttons.put(kind, radio);
+            if (kind.isKey()) {
+                // Set apart and marked: it is the one choice that moves a secret off the server.
+                box.getChildren().add(new javafx.scene.control.Separator());
+                radio.setStyle("-fx-text-fill: #b00020; -fx-font-weight: bold;");
+            }
             box.getChildren().addAll(radio, what);
         }
         buttons.get(last).setSelected(true);
-        Label note = new Label("Only public certificates are downloaded. The private key stays on the server.");
+        Label note = new Label("The first four contain only public certificates. The private key is a secret: it stays on "
+                + "the server unless you choose it here, and then you are warned first.");
         note.setWrapText(true);
         note.setOpacity(0.8);
         box.getChildren().add(note);
@@ -58,7 +64,8 @@ final class CertificateFormatDialog {
         dialog.getDialogPane().setContent(box);
         dialog.setResultConverter(b -> b == next ? (CertificateExportKind) group.getSelectedToggle().getUserData() : null);
         Optional<CertificateExportKind> chosen = dialog.showAndWait();
-        chosen.ifPresent(k -> last = k);
+        // The key is never remembered as the default: it must be chosen on purpose each time.
+        chosen.filter(k -> !k.isKey()).ifPresent(k -> last = k);
         return chosen;
     }
 

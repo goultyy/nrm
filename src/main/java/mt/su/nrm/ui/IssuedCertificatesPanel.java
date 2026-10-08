@@ -78,7 +78,7 @@ final class IssuedCertificatesPanel extends CertificateViewBase {
         delete.setOnAction(e -> deleteSelectedCertificate());
         FlowPane buttons = new FlowPane(8, 8, viewButton(), downloadButton(), issue, use, delete, refresh);
 
-        Label note = new Label("Certificates are created with their key on the server (the key is never downloaded). "
+        Label note = new Label("Certificates are created with their key on the server (the key stays there unless you choose to download it, after a warning). "
                 + "Clients trust them once this CA's certificate is installed (Authority tab).");
         note.setWrapText(true);
         note.setOpacity(0.8);

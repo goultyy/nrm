@@ -55,7 +55,7 @@ class LoggingHookStructureTest {
     void everyPublicOperationOnASessionIsCoveredByATest() {
         // If a public method is added to SshSession, add it here and to SshSessionTest, so the
         // new operation is checked for logging too. (isOpen only reads a flag; it sends nothing.)
-        List<String> covered = List.of("exec", "execPrivileged", "upload", "download", "delete", "close", "log", "isOpen",
+        List<String> covered = List.of("exec", "execPrivileged", "execPrivilegedSecret", "upload", "download", "delete", "close", "log", "isOpen",
                 "connect", "sftpList", "sftpResolve", "sftpMkdir", "sftpCreateFile", "sftpRename", "sftpRmdir",
                 "sftpUploadFile", "sftpDownloadFile");
         for (var method : SshSession.class.getDeclaredMethods()) {
