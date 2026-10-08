@@ -662,6 +662,7 @@ public final class MainWindow extends BorderPane {
         }
         overviewPanel = null;
         pendingPanel = null;
+        historyPanel = null;
         objectsPanel = null;
         certificatesPanel = null;
         cloudflarePage = null;

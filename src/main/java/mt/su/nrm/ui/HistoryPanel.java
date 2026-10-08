@@ -122,9 +122,37 @@ final class HistoryPanel extends BorderPane {
         setCenter(center);
         setBottom(status);
 
-        if (connection.isConnected()) {
+        // The history follows the connection: it loads when the panel is shown, when the connection comes up, and when
+        // the configuration is reloaded (which is what an apply does), so there is never a need to press Refresh first.
+        onConnection = (obs, o, n) -> refreshFromConnection();
+        onConfiguration = (obs, o, n) -> {
+            if (connection.configState() == ServerConnection.ConfigState.LOADED) {
+                refreshFromConnection();
+            }
+        };
+        sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene == null) {
+                connection.stateProperty().removeListener(onConnection);
+                connection.configStateProperty().removeListener(onConfiguration);
+            } else {
+                connection.stateProperty().addListener(onConnection);
+                connection.configStateProperty().addListener(onConfiguration);
+                refreshFromConnection();
+            }
+        });
+        refreshFromConnection();
+    }
+
+    private javafx.beans.value.ChangeListener<Object> onConnection;
+    private javafx.beans.value.ChangeListener<Object> onConfiguration;
+    private boolean reloadAgain;
+
+    /** Reads the history if the server is reachable now; otherwise empties the list and says why. */
+    private void refreshFromConnection() {
+        if (connection.isConnected() && connection.session() != null) {
             reload();
         } else {
+            backups.clear();
             status.setText("Connect to the server to see its change history.");
         }
     }
@@ -149,13 +177,23 @@ final class HistoryPanel extends BorderPane {
 
     void reload() {
         SshSession session = connection.session();
-        if (session == null || busy.get()) {
+        if (session == null) {
+            return;
+        }
+        if (busy.get()) {
+            // Something else is running (a read, a restore check): read again when it is done, so the news isn't lost.
+            reloadAgain = true;
             return;
         }
         busy.set(true);
         status.setText("Reading the history from the server...");
         SshExecutor.submit(() -> BackupService.list(session)).whenComplete((list, failure) -> Platform.runLater(() -> {
             busy.set(false);
+            if (reloadAgain) {
+                reloadAgain = false;
+                reload();
+                return;
+            }
             if (failure != null) {
                 status.setText(ConnectionManager.describeFailure(profile, connection, failure).replace('\n', ' '));
                 return;
@@ -254,5 +292,9 @@ final class HistoryPanel extends BorderPane {
 
     int backupCount() {
         return backups.size();
+    }
+
+    String statusText() {
+        return status.getText();
     }
 }

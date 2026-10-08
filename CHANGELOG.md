@@ -4,6 +4,13 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.4.3
+
+- Fix: Change History stayed empty until Refresh was pressed. The panel decided only once, when it was created, whether
+  the server was reachable. It now follows the connection: it loads when it is shown, when the connection comes up, and
+  when the configuration is reloaded (which is what an apply does), empties itself on disconnect, and re-reads once more
+  if news arrives while a read is in flight.
+
 ## 1.4.2
 
 - Docs: `CLAUDE.md` now allows `git push` when needed (after a passing build, to `origin` only, never forced).
