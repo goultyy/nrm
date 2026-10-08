@@ -1,0 +1,121 @@
+name: Build
+
+# ON DEMAND ONLY. This never runs by itself: not on a push, a pull request or a tag.
+# Start it from the repo's Actions tab: Build, then "Run workflow", and choose the branch to build.
+on:
+  workflow_dispatch:
+    inputs:
+      publish_release:
+        description: "Also publish a GitHub Release (tag v<version in pom.xml>) with the installers. Only works when run from main."
+        type: boolean
+        default: false
+
+# Read-only by default; only the release job below is allowed to write.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"      # the project compiles for Java 17+; jpackage ships with the JDK
+          cache: maven            # reuses downloaded libraries between runs
+
+      # Same command you run locally. The live-server and Cloudflare tests skip themselves because no
+      # NRM_TEST_* settings exist here; CI is never pointed at a real server.
+      - name: Run the tests
+        run: .\mvnw.cmd test
+
+      - name: Keep the test reports if something failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: target/surefire-reports
+
+  package:
+    name: Build the installer
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Read the version from pom.xml
+        id: version
+        shell: powershell
+        run: |
+          [xml]$pom = Get-Content -Raw pom.xml
+          $version = $pom.project.version
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding ascii
+          "NRM_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding ascii
+          "Version: $version"
+
+      # If the runner image does not already have WiX 3.x, the script builds only the app image and says so.
+      # To also get the .msi and .exe, switch this step on:
+      # - name: Install WiX
+      #   run: choco install wixtoolset -y --no-progress
+
+      # Windows PowerShell 5.1, the same shell you use locally. Tests already ran in the job above.
+      - name: Build the app image and installers
+        shell: powershell
+        run: .\packaging\build-installer.ps1 -SkipTests
+
+      - name: Zip the app image
+        shell: powershell
+        run: |
+          Compress-Archive -Path target\installer\NRM -DestinationPath "target\installer\NRM-$env:NRM_VERSION-portable.zip"
+
+      - name: Show what was built
+        shell: powershell
+        run: Get-ChildItem target\installer -File | Select-Object Name, @{n='MB';e={[math]::Round($_.Length / 1MB, 1)}}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nrm-${{ env.NRM_VERSION }}
+          path: |
+            target/installer/*.msi
+            target/installer/*.exe
+            target/installer/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish a GitHub Release
+    needs: package
+    # Only when asked for, and only from main, so a branch build can never become a public release.
+    if: ${{ inputs.publish_release && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write         # the only job that may create a release (and its tag)
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: release-files
+          merge-multiple: true
+
+      # The GitHub CLI is already on the runner, so no third-party release action is needed.
+      # This fails if that version's tag already exists, so the same version cannot be published twice.
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ needs.package.outputs.version }}" release-files/* \
+            --repo "${{ github.repository }}" \
+            --target "${{ github.sha }}" \
+            --title "NRM v${{ needs.package.outputs.version }}" \
+            --generate-notes

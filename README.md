@@ -48,6 +48,10 @@ You need JDK 17 or newer and Maven 3.8+.
 
 The profile store uses Windows DPAPI, so the app itself runs on Windows. The tests run on any OS because they use a passphrase-based key protector. The screen smoke tests are skipped where JavaFX can't start (no display).
 
+### Building on GitHub (on demand only)
+
+`.github/workflows/build.yml` builds on GitHub's Windows machines, but only when you start it: it never runs on a push, a pull request or a tag. On the repository's **Actions** tab choose **Build**, press **Run workflow**, and pick the branch. It runs the tests, then `packaging\build-installer.ps1`, and attaches the installers (and a portable `.zip` of the app image) to the run as a download. Ticking **publish_release** also publishes a GitHub Release named `v<version in pom.xml>`; that works only when run from `main`, and refuses a version that has already been released. The live-server and Cloudflare tests stay skipped because the workflow has none of their settings. WiX is expected on the runner image; if it is missing, only the app image is built and the log says so (the workflow has a commented-out step to install it).
+
 ### Windows installer
 
 ```

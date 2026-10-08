@@ -4,6 +4,13 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.4.6
+
+- Add an on-demand GitHub Actions workflow (`.github/workflows/build.yml`). It runs only when started by hand from the
+  Actions tab, never on a push, pull request or tag. It runs the tests on Windows, builds the app image and installers with
+  `packaging\build-installer.ps1`, and uploads them to the run. An optional "publish_release" box publishes a GitHub Release
+  for the pom.xml version, only from `main`.
+
 ## 1.4.5
 
 - Fix: three tests failed on a fresh Windows checkout (for example `VirtualHostTest.newDirectivesGoInASensibleOrder`).
