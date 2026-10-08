@@ -6,7 +6,7 @@
 
     <groupId>mt.su.nrm</groupId>
     <artifactId>nrm</artifactId>
-    <version>1.4.3</version>
+    <version>1.4.5</version>
     <name>NRM</name>
     <description>Windows desktop manager for remote Nginx servers over SSH</description>
 

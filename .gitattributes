@@ -1,6 +1,8 @@
 # Let git normalise line endings, but keep the scripts that need a specific one.
 * text=auto
 *.cmd text eol=crlf
+# Sample nginx configs the tests compare against literal \n: always LF, whatever the platform checks out.
+src/test/resources/** text eol=lf
 mvnw text eol=lf
 *.ico binary
 *.png binary

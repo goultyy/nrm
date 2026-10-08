@@ -9,10 +9,8 @@ import org.junit.jupiter.api.Test;
 class SiteSummaryTest {
 
     private static SiteSummary summary(String resource, int server) throws Exception {
-        try (InputStream in = SiteSummaryTest.class.getResourceAsStream("/nginx/" + resource)) {
-            ConfigFile file = ConfigFile.parse("x", new String(in.readAllBytes(), StandardCharsets.UTF_8));
-            return SiteSummary.of(new VirtualHost(file, file.serverBlocks().get(server)).read());
-        }
+        ConfigFile file = ConfigFile.parse("x", NginxFixtures.read(resource));
+        return SiteSummary.of(new VirtualHost(file, file.serverBlocks().get(server)).read());
     }
 
     @Test

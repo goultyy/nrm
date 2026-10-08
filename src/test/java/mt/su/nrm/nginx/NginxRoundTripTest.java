@@ -23,9 +23,7 @@ class NginxRoundTripTest {
             "confd-app.conf", "php-site.conf");
 
     static String resource(String name) throws IOException {
-        try (InputStream in = NginxRoundTripTest.class.getResourceAsStream("/nginx/" + name)) {
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
-        }
+        return NginxFixtures.read(name);
     }
 
     private static void assertRoundTrip(String text) throws NginxParseException {

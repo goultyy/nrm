@@ -4,6 +4,14 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.4.5
+
+- Fix: three tests failed on a fresh Windows checkout (for example `VirtualHostTest.newDirectivesGoInASensibleOrder`).
+  The `.gitattributes` added in 1.1.0 lets Windows check text files out with CRLF line endings, and those tests compare
+  against literal `\n`. The sample nginx files in `src/test/resources` are now always checked out as LF, and the tests read
+  them through one helper (`NginxFixtures`) that normalises line endings, so a CRLF checkout passes too. (1.4.4 is used
+  by the `ci-trial` branch; this skips it so the two cannot collide.)
+
 ## 1.4.3
 
 - Fix: Change History stayed empty until Refresh was pressed. The panel decided only once, when it was created, whether

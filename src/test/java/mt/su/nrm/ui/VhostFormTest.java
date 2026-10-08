@@ -15,9 +15,7 @@ import org.junit.jupiter.api.Test;
 class VhostFormTest {
 
     private static ConfigFile load(String resource) throws Exception {
-        try (InputStream in = VhostFormTest.class.getResourceAsStream("/nginx/" + resource)) {
-            return ConfigFile.parse("/etc/nginx/" + resource, new String(in.readAllBytes(), StandardCharsets.UTF_8));
-        }
+        return ConfigFile.parse("/etc/nginx/" + resource, mt.su.nrm.nginx.NginxFixtures.read(resource));
     }
 
     @Test

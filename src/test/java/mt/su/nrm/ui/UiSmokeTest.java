@@ -97,9 +97,7 @@ class UiSmokeTest {
     }
 
     private static String resource(String name) throws Exception {
-        try (InputStream in = UiSmokeTest.class.getResourceAsStream("/nginx/" + name)) {
-            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
-        }
+        return mt.su.nrm.nginx.NginxFixtures.read(name);
     }
 
     private static RemoteConfig sampleConfig() throws Exception {
