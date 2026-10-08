@@ -4,6 +4,13 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.4.1
+
+- Fix: importing a certificate kept saying "Choose the private key file" after the key had been chosen, until you ticked
+  "Replace an imported certificate". The shared form dialog only re-checked itself for text boxes, checkboxes and
+  drop-downs placed directly in it, so a file field (a text box beside a Browse button) never triggered a re-check. It
+  now looks inside rows and groups, which also fixes any other form with a field in a row.
+
 ## 1.4.0
 
 - Download a server certificate's **private key**, as an explicit choice in the Download list (set apart, in red, never the

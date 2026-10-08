@@ -28,6 +28,27 @@ final class FormDialog {
     }
 
     /**
+     * Runs {@code onChange} whenever an input inside {@code node} changes. A field may be inside a row or a group (a
+     * text box with a Browse button beside it, say), so containers are searched too; without that, a change to such a
+     * field never reached the validation and an old error stayed on screen.
+     */
+    static void watch(Node node, Runnable onChange) {
+        if (node instanceof TextArea) {
+            ((TextArea) node).textProperty().addListener((obs, o, n) -> onChange.run());
+        } else if (node instanceof TextField) {
+            ((TextField) node).textProperty().addListener((obs, o, n) -> onChange.run());
+        } else if (node instanceof javafx.scene.control.CheckBox) {
+            ((javafx.scene.control.CheckBox) node).selectedProperty().addListener((obs, o, n) -> onChange.run());
+        } else if (node instanceof ComboBox) {
+            ((ComboBox<?>) node).valueProperty().addListener((obs, o, n) -> onChange.run());
+        } else if (node instanceof javafx.scene.Parent) {
+            for (Node child : ((javafx.scene.Parent) node).getChildrenUnmodifiable()) {
+                watch(child, onChange);
+            }
+        }
+    }
+
+    /**
      * Shows the dialog and returns true if the user pressed OK.
      *
      * @param problems     evaluated on every change; returns what is wrong with the current input
@@ -67,14 +88,8 @@ final class FormDialog {
             Node f = (Node) labelsFields[i + 1];
             if (f instanceof TextArea) {
                 javafx.scene.layout.GridPane.setValignment(l, javafx.geometry.VPos.TOP);
-                ((TextArea) f).textProperty().addListener((obs, o, n) -> revalidate.run());
-            } else if (f instanceof TextField) {
-                ((TextField) f).textProperty().addListener((obs, o, n) -> revalidate.run());
-            } else if (f instanceof javafx.scene.control.CheckBox) {
-                ((javafx.scene.control.CheckBox) f).selectedProperty().addListener((obs, o, n) -> revalidate.run());
-            } else if (f instanceof ComboBox) {
-                ((ComboBox<?>) f).valueProperty().addListener((obs, o, n) -> revalidate.run());
             }
+            watch(f, revalidate);
             grid.addRow(i / 2, l, f);
         }
 
