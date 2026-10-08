@@ -1,0 +1,42 @@
+/*
+ * NRM dark theme.
+ *
+ * Loaded on top of JavaFX's standard (Modena) theme, never instead of it. Modena works out the colour of every
+ * control from a few base colours; changing those is enough to darken buttons, tables, trees, tabs, menus, text
+ * fields, scroll bars and dialogs, and the text colour switches to light by itself when the background is dark.
+ *
+ * Light mode is simply this file not being loaded. The retro pictures on the tiles are drawn with fixed colours
+ * and are deliberately left as they are.
+ */
+.root {
+    -fx-base: #34373c;
+    -fx-background: #2a2c30;
+    -fx-background-color: -fx-background;
+
+    /* Inside text fields, lists, tables and trees. */
+    -fx-control-inner-background: #232528;
+    -fx-control-inner-background-alt: derive(-fx-control-inner-background, 6%);
+
+    /*
+     * Selection and focus. Deliberately a muted slate rather than a saturated blue: a bright blue against these
+     * greys is loud, and the pictures on the tiles bring plenty of colour of their own.
+     */
+    -fx-accent: #4a5b73;
+    -fx-selection-bar: #4a5b73;
+    -fx-selection-bar-non-focused: #3d4651;
+    -fx-selection-bar-text: #f2f4f7;
+    -fx-focus-color: #8795a8;
+    -fx-faint-focus-color: #8795a822;
+
+    /* Lines around fields and panels. */
+    -fx-box-border: #4a4e54;
+    -fx-text-box-border: #4a4e54;
+}
+
+/*
+ * Hint text inside empty fields, text areas and editable combo boxes. The standard theme works it out as "a bit
+ * darker than the field's background", which is fine on white but comes out nearly black on a dark field.
+ */
+.text-input {
+    -fx-prompt-text-fill: #8b9098;
+}
