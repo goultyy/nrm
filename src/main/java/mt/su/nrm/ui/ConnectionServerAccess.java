@@ -39,6 +39,29 @@ final class ConnectionServerAccess implements ServerAccess {
     }
 
     @Override
+    public void chooseRemote(Window owner, String current, boolean file, Consumer<String> onChosen) {
+        SshSession session = connection.session();
+        if (session == null || !connection.isConnected()) {
+            Dialogs.info(owner, "Not connected", "Connect to the server to browse its files.");
+            return;
+        }
+        // Everything goes through the logged session, like the File Explorer's server side.
+        RemotePickerDialog.FileSystem fs = new RemotePickerDialog.FileSystem() {
+            @Override
+            public List<mt.su.nrm.ssh.SftpEntry> list(String dir) throws java.io.IOException {
+                return session.sftpList(dir);
+            }
+
+            @Override
+            public void mkdir(String dir) throws java.io.IOException {
+                session.sftpMkdir(dir);
+            }
+        };
+        new RemotePickerDialog(fs, current, file ? RemotePickerModel.Kind.FILE : RemotePickerModel.Kind.FOLDER)
+                .showAndWait(owner).ifPresent(onChosen);
+    }
+
+    @Override
     public List<String> logFormatNames() {
         List<String> names = new java.util.ArrayList<>(List.of("combined"));
         RemoteConfig config = connection.config();

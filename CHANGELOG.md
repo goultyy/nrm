@@ -4,6 +4,13 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.2.0
+
+- Choose a folder or file on the server from a dialog instead of typing the path. A "Choose folder" button sits beside
+  a virtual host's root, a location's root and alias, and a cache zone's folder; "Choose file" beside the SSL
+  certificate and key, the password file and an access log. The dialog lists only the server, opens near what the
+  field holds (or the nearest folder above it that exists), can create a new folder, and has a "Show files" box.
+
 ## 1.1.2
 
 - Docs: `CLAUDE.md` now says every version bump is committed locally and that pushing is left to the owner.

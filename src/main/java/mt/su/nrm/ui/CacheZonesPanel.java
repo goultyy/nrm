@@ -54,7 +54,7 @@ final class CacheZonesPanel extends HttpObjectsPanel<CacheZone> {
     @Override
     boolean add(RemoteConfig config, Window owner) {
         CacheZoneSettings s = new CacheZoneSettings();
-        if (!CacheZoneWizard.run(owner, s, names(config, null), true)) {
+        if (!CacheZoneWizard.run(owner, s, names(config, null), true, new ConnectionServerAccess(profile, connection))) {
             return false;
         }
         config.createCacheZone(s.path).apply(s);
@@ -64,7 +64,7 @@ final class CacheZonesPanel extends HttpObjectsPanel<CacheZone> {
     @Override
     boolean edit(RemoteConfig config, CacheZone item, Window owner) {
         CacheZoneSettings s = item.read();
-        if (!CacheZoneWizard.run(owner, s, names(config, item), false)) {
+        if (!CacheZoneWizard.run(owner, s, names(config, item), false, new ConnectionServerAccess(profile, connection))) {
             return false;
         }
         item.apply(s);

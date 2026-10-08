@@ -325,7 +325,7 @@ public final class VirtualHostEditor {
         LineListEditor access = new LineListEditor(accessLogs,
                 "Where visits to this site are recorded. Add more than one to keep separate logs, or choose \"no access log\".",
                 LineEntries::describeAccessLog, (w, l) -> EntryDialogs.accessLog(w, l, siteSlug(),
-                        fileAccess.logFormatNames()));
+                        fileAccess.logFormatNames(), fileAccess));
         access.compact();
 
         TextField path = new TextField();

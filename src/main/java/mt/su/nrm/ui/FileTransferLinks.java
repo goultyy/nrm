@@ -36,7 +36,17 @@ final class FileTransferLinks {
                 server.openInFileTransfer(dir);
             }
         });
-        HBox row = new HBox(6, field, open);
+        Button choose = new Button(RemotePickerModel.buttonLabel(isFile ? RemotePickerModel.Kind.FILE : RemotePickerModel.Kind.FOLDER));
+        choose.setOnAction(e -> {
+            ServerAccess server = access.get();
+            javafx.stage.Window owner = choose.getScene() == null ? null : choose.getScene().getWindow();
+            if (!server.connected()) {
+                Dialogs.info(owner, "Not connected", "Connect to the server to browse its files.");
+            } else {
+                server.chooseRemote(owner, field.getText(), isFile, field::setText);
+            }
+        });
+        HBox row = new HBox(6, field, choose, open);
         HBox.setHgrow(field, Priority.ALWAYS);
         return row;
     }

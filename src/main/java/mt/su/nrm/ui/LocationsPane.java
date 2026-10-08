@@ -311,7 +311,7 @@ final class LocationsPane extends BorderPane {
         access.add(new VBox(4, accessWizard, WizardParts.hint("The easy way: choose who may open this location. "
                 + "The fields below are the raw settings, for experts.")), 0, 0, 2, 1);
         access.addRow(1, new Label("Login realm"), authBasic);
-        access.addRow(2, new Label("Password file"), authBasicUserFile);
+        access.addRow(2, new Label("Password file"), FileTransferLinks.beside(authBasicUserFile, () -> serverAccess, true));
         access.addRow(3, top("Allow / deny"), accessRules);
 
         LineListEditor limitReqList = new LineListEditor(limitReq,

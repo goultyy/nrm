@@ -41,6 +41,11 @@ final class CacheZoneWizard {
      * @return true if the user finished the wizard
      */
     static boolean run(Window owner, CacheZoneSettings s, Set<String> takenNames, boolean creating) {
+        return run(owner, s, takenNames, creating, ServerAccess.NONE);
+    }
+
+    /** @param access the server, so the folder can be chosen from its file list */
+    static boolean run(Window owner, CacheZoneSettings s, Set<String> takenNames, boolean creating, ServerAccess access) {
         // ---- page 1: name and folder
         String existingName = s.zoneName();
         TextField name = new TextField(existingName);
@@ -65,7 +70,7 @@ final class CacheZoneWizard {
         int r = WizardParts.note(page1, 0, WizardParts.hint("A cache zone stores copies of responses from your backend "
                 + "so nginx can answer repeat requests without asking the backend again. Locations refer to the zone by name."));
         r = WizardParts.row(page1, r, "Zone name", name);
-        r = WizardParts.row(page1, r, "Folder for cached files", folder);
+        r = WizardParts.row(page1, r, "Folder for cached files", FileTransferLinks.beside(folder, () -> access, false));
         WizardParts.note(page1, r, WizardParts.hint("nginx creates the last folder itself (and this app creates the one "
                 + "above it if needed). Put the cache on a disk with enough free space."));
 

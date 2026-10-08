@@ -358,7 +358,8 @@ final class EntryDialogs {
      * @param formats the log formats to offer: nginx's {@code combined} and those defined on the server (see Log
      *                Formats); a name typed in that isn't among them is still accepted
      */
-    static Optional<String> accessLog(Window owner, String initial, String suggestedName, List<String> formats) {
+    static Optional<String> accessLog(Window owner, String initial, String suggestedName, List<String> formats,
+                                      ServerAccess access) {
         AccessLog start = initial.isBlank()
                 ? new AccessLog(false, "/var/log/nginx/" + suggestedName + ".access.log", "combined", List.of())
                 : LineEntries.parseAccessLog(initial);
@@ -374,13 +375,14 @@ final class EntryDialogs {
         format.setValue(start.format());
         GridPane g = grid();
         g.add(off, 1, 0);
-        g.addRow(1, new Label("Log file"), path);
+        javafx.scene.layout.HBox pathRow = FileTransferLinks.beside(path, () -> access, true);
+        g.addRow(1, new Label("Log file"), pathRow);
         g.addRow(2, new Label("Format"), format);
         g.add(hint("\"combined\" is nginx's standard format. The others are the formats defined on this server; make "
                 + "your own under Log Formats."), 1, 3);
         g.getColumnConstraints().addAll(new javafx.scene.layout.ColumnConstraints(90),
-                new javafx.scene.layout.ColumnConstraints(200, 400, Double.MAX_VALUE));
-        path.disableProperty().bind(off.selectedProperty());
+                new javafx.scene.layout.ColumnConstraints(200, 560, Double.MAX_VALUE));
+        pathRow.disableProperty().bind(off.selectedProperty());
         format.disableProperty().bind(off.selectedProperty());
         Supplier<AccessLog> current = () -> new AccessLog(off.isSelected(), path.getText().strip(), text(format), start.extra());
         Form form = new Form(owner, initial.isBlank() ? "Add Access Log" : "Edit Access Log",

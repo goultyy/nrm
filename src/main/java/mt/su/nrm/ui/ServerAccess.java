@@ -80,6 +80,14 @@ interface ServerAccess {
     }
 
     /**
+     * Lets the user pick a folder (or a file) on the server in a dialog that lists only the server. {@code current} is
+     * what the field holds now, to open near it; {@code onChosen} gets the path if the user picks one. Does nothing when
+     * there is no server behind the editor.
+     */
+    default void chooseRemote(Window owner, String current, boolean file, Consumer<String> onChosen) {
+    }
+
+    /**
      * The names an {@code access_log} can use as its format: nginx's built-in {@code combined}, then every format
      * defined on the server. Without a server only the built-in one is known.
      */
