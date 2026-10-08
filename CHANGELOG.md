@@ -4,6 +4,10 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.1.2
+
+- Docs: `CLAUDE.md` now says every version bump is committed locally and that pushing is left to the owner.
+
 ## 1.1.1
 
 - Docs: the README checklist now shows steps 1 to 8 done, step 9 done except the WiX installers, and lists the

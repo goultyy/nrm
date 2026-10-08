@@ -98,8 +98,11 @@ Keep this separation. UI code should never talk to SSH directly — go through a
   major only when I ask. Add a line to `CHANGELOG.md` for it, and say the new version in your closing report so I can
   tell builds apart.
 - **Keep the README's checklist current.** Tick off each step there as you finish it.
-- **Commit after each completed step** with a message naming the step, so we always have a
-  working checkpoint to roll back to.
+- **Commit on every version bump, however minor**, once `.\mvnw test` passes, with the version in the message
+  (for example `1.1.2: fix the module list`) and the usual Co-Authored-By line. Commit only; **never push**. I push
+  myself. The report should say the commit hash and that it is not pushed. Run git by its full path
+  (`C:\Program Files\Git\cmd\git.exe`) if it isn't on PATH, and write commit messages from a file without a BOM
+  (PowerShell 5.1's `-Encoding utf8` and piped here-strings add one).
 - **If something in this brief conflicts with what turns out to be sensible**, stop and ask
   rather than silently deciding — especially anything touching sudo, host key handling, or the
   encrypted store format.
