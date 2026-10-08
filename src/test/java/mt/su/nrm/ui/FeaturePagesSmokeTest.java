@@ -241,6 +241,49 @@ class FeaturePagesSmokeTest {
         assertEquals(seen, ran.size(), "no further commands may be sent once it has given up");
     }
 
+    // ---------------------------------------------------------------- the IP addresses page
+
+    @Test
+    void theIpAddressesPageExplainsWhenTheConfigurationIsNotLoaded() throws Exception {
+        assertTrue(onFx(() -> {
+            IpAddressesPage page = new IpAddressesPage(profile(), new ServerConnection(UUID.randomUUID()));
+            new Scene(page);
+            return page.getCenter() != null;
+        }));
+    }
+
+    @Test
+    void theIpAddressesPageSaysSoWhenThereIsNoConnectionToAskAndStillDrawsTheTable() throws Exception {
+        ServerConnection connection = loaded("    server { listen 80; server_name a.com; }\n");
+        String status = onFx(() -> {
+            IpAddressesPage page = new IpAddressesPage(profile(), connection);
+            new Scene(page);
+            return page.statusText();
+        });
+        assertTrue(status.startsWith("Connect to the server"), status);
+    }
+
+    @Test
+    void theIpAddressesPageJoinsTheServersAddressesWithTheConfiguration() throws Exception {
+        ServerConnection connection = loaded("    server { listen 80; listen 192.0.2.77:443 ssl; server_name a.com; }\n");
+        Object[] seen = onFx(() -> {
+            IpAddressesPage page = new IpAddressesPage(profile(), connection);
+            new Scene(page);
+            page.applyFacts(new mt.su.nrm.ssh.NetworkService.Facts(
+                    List.of(new mt.su.nrm.ssh.NetworkService.LocalAddress("10.0.0.5", false, "eth0", "global"),
+                            new mt.su.nrm.ssh.NetworkService.LocalAddress("127.0.0.1", false, "lo", "host")),
+                    List.of(new mt.su.nrm.ssh.NetworkService.ListeningPort("0.0.0.0", 80, true)), true));
+            return new Object[] {page.rowCount(), page.rowSummaries(), page.warningsText(), page.statusText()};
+        });
+        assertEquals(2, seen[0]);
+        @SuppressWarnings("unchecked")
+        List<String> rows = (List<String>) seen[1];
+        assertEquals("10.0.0.5 | 80 | a.com :80 | not looked up", rows.get(0));
+        assertTrue(rows.get(1).startsWith("127.0.0.1 | 80 | a.com :80 | not applicable"), rows.get(1));
+        assertTrue(seen[2].toString().contains("a.com listens on 192.0.2.77:443, but this server has no such address"), seen[2].toString());
+        assertEquals("", seen[3]);
+    }
+
     // ---------------------------------------------------------------- the features as plugged in
 
     @Test

@@ -25,7 +25,7 @@ public final class Features {
 
     /** The built-in features, then any from {@link ServiceLoader}; a provided one can't replace a built-in id. */
     public static List<Feature> all() {
-        List<Feature> all = new ArrayList<>(List.of(new StatusPageFeature()));
+        List<Feature> all = new ArrayList<>(List.of(new StatusPageFeature(), new IpAddressesFeature()));
         for (Feature provided : ServiceLoader.load(Feature.class)) {
             if (all.stream().noneMatch(f -> f.id().equals(provided.id()))) {
                 all.add(provided);

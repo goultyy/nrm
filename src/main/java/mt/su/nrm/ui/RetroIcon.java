@@ -63,6 +63,8 @@ final class RetroIcon {
                 return Color.web("#2e7d32");
             case "Real IP":
                 return Color.web("#7b1fa2");
+            case "IP Addresses":
+                return Color.web("#1565c0");
             case "DNS Zones":
                 return Color.web("#000080");
             case "Tunnels":
@@ -155,6 +157,12 @@ final class RetroIcon {
                 // A log line built from labelled pieces.
                 g.getChildren().addAll(block(10, 26, 20, 9, accent), bar(33, 29, 38, 3, INK), block(10, 38, 14, 9, accent),
                         bar(27, 41, 44, 3, INK), block(10, 50, 26, 9, accent), bar(39, 53, 28, 3, INK));
+                break;
+            case "IP Addresses":
+                // Four number blocks joined by dots, like 10.0.0.5, with lines beneath.
+                g.getChildren().addAll(block(10, 26, 12, 11, accent), square(24, 34, 3, INK), block(29, 26, 12, 11, accent),
+                        square(43, 34, 3, INK), block(48, 26, 12, 11, accent), square(62, 34, 3, INK), block(67, 26, 12, 11, accent),
+                        bar(10, 45, 66, 3, INK), bar(10, 52, 44, 3, INK));
                 break;
             case "Change History":
                 // Versions stacked in time, with an arrow going back.

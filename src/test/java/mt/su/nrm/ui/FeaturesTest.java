@@ -44,6 +44,7 @@ class FeaturesTest {
     void theBuiltInFeaturesAreThereAndNothingIsOnByDefault() {
         List<String> ids = Features.all().stream().map(Feature::id).toList();
         assertTrue(ids.contains("status-page"));
+        assertTrue(ids.contains("ip-addresses"));
         assertEquals(ids.size(), ids.stream().distinct().count(), "ids must be unique");
         assertTrue(Features.enabled().isEmpty());
     }

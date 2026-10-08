@@ -4,6 +4,16 @@ Every change bumps the version in `pom.xml` (the only place it is set; the About
 all read it) and adds a line here, newest first. Patch (1.1.x) for fixes and small changes, minor (1.x.0) for new
 features or screens, major (x.0.0) only when asked.
 
+## 1.3.0
+
+- New optional add-on (View > Features): IP addresses. Lists every address on the server with the ports nginx listens on
+  now (from the server), the sites whose `listen` covers it (from the loaded configuration), and warnings where the two
+  disagree. "Find external addresses" looks up the public address behind each private one: first the cloud's metadata
+  (AWS, Google Cloud, Azure; Oracle names only the private address), then a "what is my IP" service asked from the server
+  through that address. The services are a list you can edit ("Services used", default api.ipify.org then icanhazip.com),
+  you are asked before the first lookup, and the requests show in the command log. "Check from this computer" tries a
+  plain TCP connection to the external address. View only; nothing is stored on the server profile.
+
 ## 1.2.0
 
 - Choose a folder or file on the server from a dialog instead of typing the path. A "Choose folder" button sits beside
